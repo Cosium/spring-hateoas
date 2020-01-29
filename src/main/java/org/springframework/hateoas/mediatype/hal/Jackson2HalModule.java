@@ -296,7 +296,7 @@ public class Jackson2HalModule extends SimpleModule {
 			implements ContextualSerializer {
 
 		private static final long serialVersionUID = 8030706944344625390L;
-
+		
 		private final EmbeddedMapper embeddedMapper;
 		private final HalConfiguration configuration;
 		private final BeanProperty property;
@@ -325,24 +325,37 @@ public class Jackson2HalModule extends SimpleModule {
 		@SuppressWarnings("null")
 		public void serialize(Collection<?> value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
 
-			EmbeddedMapper mapper = configuration.isApplyPropertyNamingStrategy() //
-					? embeddedMapper.with(provider.getConfig().getPropertyNamingStrategy()) //
-					: embeddedMapper;
-
-			Map<HalLinkRelation, Object> embeddeds = mapper.map(value);
-
+			Embeddeds embeddeds = mapToEmbeddeds(value, provider);
 			Object currentValue = jgen.getCurrentValue();
 
 			if (currentValue instanceof RepresentationModel) {
 
-				if (mapper.hasCuriedEmbed(value)) {
+				if (embeddeds.hasCuriedEmbed) {
 					((RepresentationModel<?>) currentValue).add(CURIES_REQUIRED_DUE_TO_EMBEDS);
 				}
 			}
 
-			provider.findValueSerializer(Map.class, property).serialize(embeddeds, jgen, provider);
+			provider.findValueSerializer(Map.class, property).serialize(embeddeds.relations, jgen, provider);
 		}
+		
+		private Embeddeds mapToEmbeddeds(Collection<?> value, SerializerProvider provider) {
+			EmbeddedMapper mapper = configuration.isApplyPropertyNamingStrategy() //
+					? embeddedMapper.with(provider.getConfig().getPropertyNamingStrategy()) //
+					: embeddedMapper;
 
+			return new Embeddeds(mapper.map(value), mapper.hasCuriedEmbed(value));
+		}
+		
+		private static class Embeddeds {
+			private final Map<HalLinkRelation, Object> relations;
+			private final boolean hasCuriedEmbed;
+
+			private Embeddeds(Map<HalLinkRelation, Object> relations, boolean hasCuriedEmbed) {
+				this.relations = relations;
+				this.hasCuriedEmbed = hasCuriedEmbed;
+			}
+		}
+		
 		/*
 		 * (non-Javadoc)
 		 * @see com.fasterxml.jackson.databind.ser.ContextualSerializer#createContextual(com.fasterxml.jackson.databind.SerializerProvider, com.fasterxml.jackson.databind.BeanProperty)
@@ -381,7 +394,7 @@ public class Jackson2HalModule extends SimpleModule {
 		@Override
 		@SuppressWarnings("null")
 		public boolean isEmpty(SerializerProvider provider, Collection<?> value) {
-			return value.isEmpty();
+			return mapToEmbeddeds(value, provider).relations.isEmpty();
 		}
 
 		/*
@@ -920,6 +933,10 @@ public class Jackson2HalModule extends SimpleModule {
 		public Map<HalLinkRelation, Object> map(Iterable<?> source) {
 
 			Assert.notNull(source, "Elements must not be null!");
+			
+			if (!source.iterator().hasNext()) {
+				return mapEmptyIterable();
+			}
 
 			HalEmbeddedBuilder builder = new HalEmbeddedBuilder(relProvider, curieProvider, preferCollectionRels) //
 					.withRelationTransformer(relationTransformer);
@@ -927,6 +944,13 @@ public class Jackson2HalModule extends SimpleModule {
 			source.forEach(builder::add);
 
 			return builder.asMap();
+		}
+		
+		private Map<HalLinkRelation, Object> mapEmptyIterable(){
+			return relProvider.getCollectionResourceRelForUnknownType()
+					.map(HalLinkRelation::of)
+					.map(halLinkRelation -> Collections.singletonMap(halLinkRelation, (Object) Collections.emptyList()))
+					.orElse(Collections.emptyMap());
 		}
 
 		/**

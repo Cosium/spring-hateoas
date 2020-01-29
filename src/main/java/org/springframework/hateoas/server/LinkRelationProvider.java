@@ -15,6 +15,8 @@
  */
 package org.springframework.hateoas.server;
 
+import java.util.Optional;
+
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,6 +53,13 @@ public interface LinkRelationProvider extends Plugin<LookupContext> {
 	 * @return
 	 */
 	LinkRelation getCollectionResourceRelFor(Class<?> type);
+
+	/**
+	 * Returns the relation type to be used to point to a collection resource of unknown typ.
+	 */
+	default Optional<LinkRelation> getCollectionResourceRelForUnknownType(){
+		return Optional.empty();
+	}
 
 	/**
 	 * Callback method to manually select {@link LinkRelationProvider} implementations based on a given
