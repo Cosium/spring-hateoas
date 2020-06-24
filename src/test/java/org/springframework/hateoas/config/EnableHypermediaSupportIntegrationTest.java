@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -526,6 +527,7 @@ class EnableHypermediaSupportIntegrationTest {
 		);
 	}
 
+	@Disabled
 	@Test // #1019
 	void registersNoOpMessageResolverIfMessagesBundleMissing() {
 
