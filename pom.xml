@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.hateoas</groupId>
 	<artifactId>spring-hateoas</artifactId>
-	<version>1.3.4.0.cosium-SNAPSHOT</version>
+	<version>1.3.4.0.cosium</version>
 
 	<name>Spring HATEOAS</name>
 	<url>https://github.com/spring-projects/spring-hateoas</url>
@@ -287,11 +286,11 @@
 									<target>
 										<copy todir="target/site/reference/html/images">
 											<fileset dir="${basedir}/src/main/asciidoc" erroronmissingdir="false">
-												<include name="**/*.png"/>
-												<include name="**/*.gif"/>
-												<include name="**/*.jpg"/>
+												<include name="**/*.png" />
+												<include name="**/*.gif" />
+												<include name="**/*.jpg" />
 											</fileset>
-											<flattenmapper/>
+											<flattenmapper />
 										</copy>
 									</target>
 								</configuration>
@@ -306,17 +305,16 @@
 								<configuration>
 									<target>
 										<copy failonerror="false" todir="${generated-asciidoc-sources.directory}/">
-											<fileset dir="src/main/asciidoc" includes="**/*.adoc"/>
+											<fileset dir="src/main/asciidoc" includes="**/*.adoc" />
 										</copy>
-										<copy failonerror="false"
-										      todir="${generated-asciidoc-sources.directory}/images/">
-											<fileset dir="src/main/asciidoc/images"/>
+										<copy failonerror="false" todir="${generated-asciidoc-sources.directory}/images/">
+											<fileset dir="src/main/asciidoc/images" />
 										</copy>
 
 										<copy todir="${generated-docs.directory}">
 											<fileset dir="${generated-asciidoc-sources.directory}">
-												<include name="css/**"/>
-												<include name="js/**"/>
+												<include name="css/**" />
+												<include name="js/**" />
 											</fileset>
 										</copy>
 									</target>
@@ -333,37 +331,34 @@
 									<target>
 
 										<!-- Copy files for the single-file HTML version -->
-										<copy failonerror="false"
-										      todir="target/site/reference/html/images">
-											<fileset dir="${generated-docs.directory}/images"/>
+										<copy failonerror="false" todir="target/site/reference/html/images">
+											<fileset dir="${generated-docs.directory}/images" />
 										</copy>
 
 										<!-- Copy shared resources. Spring Data ones first to override the ones shared -->
 										<copy failonerror="false" todir="target/site/reference/html/">
 											<fileset dir="${shared.resources}">
-												<include name="css/**"/>
-												<include name="js/**"/>
+												<include name="css/**" />
+												<include name="js/**" />
 											</fileset>
 										</copy>
 
 										<copy failonerror="false" todir="target/site/reference/html/">
 											<fileset dir="${generated-asciidoc-sources.directory}">
-												<include name="css/**"/>
-												<include name="js/**"/>
+												<include name="css/**" />
+												<include name="js/**" />
 											</fileset>
 										</copy>
 
 										<copy failonerror="false" todir="target/site/reference/html/">
-											<fileset dir="${generated-docs.directory}" includes="*.html"/>
+											<fileset dir="${generated-docs.directory}" includes="*.html" />
 										</copy>
 
 										<!-- Copy and rename the Epub file -->
-										<copy failonerror="false" file="${generated-docs.directory}/index.pdf"
-										      tofile="target/site/reference/pdf/spring-hateoas-reference.pdf"/>
+										<copy failonerror="false" file="${generated-docs.directory}/index.pdf" tofile="target/site/reference/pdf/spring-hateoas-reference.pdf" />
 
 										<!-- Copy and rename the PDF file -->
-										<copy failonerror="false" file="${generated-docs.directory}/index.epub"
-										      tofile="target/site/reference/epub/spring-hateoas-reference.epub"/>
+										<copy failonerror="false" file="${generated-docs.directory}/index.epub" tofile="target/site/reference/epub/spring-hateoas-reference.epub" />
 
 									</target>
 								</configuration>
@@ -1121,6 +1116,7 @@
 		<connection>scm:git:git://github.com/cosium/spring-hateoas.git</connection>
 		<developerConnection>scm:git:git@github.com:cosium/spring-hateoas.git</developerConnection>
 		<url>https://github.com/cosium/spring-hateoas</url>
-	</scm>
+	  <tag>spring-hateoas-1.3.4.0.cosium</tag>
+  </scm>
 
 </project>
