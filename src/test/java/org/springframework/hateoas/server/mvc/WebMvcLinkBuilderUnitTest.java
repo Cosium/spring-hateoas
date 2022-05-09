@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -639,6 +640,14 @@ class WebMvcLinkBuilderUnitTest extends TestUtils {
 		linkTo(methodOn(ControllerWithHandlerMethodParameterThatNeedsConversion.class).method(41L)).withSelfRel();
 	}
 
+	@Test // #1776
+	void ignoresRequestParamMultipartFile() {
+		Link link = linkTo(methodOn(ControllerWithMethods.class).methodWithMultipartFile(null)).withSelfRel();
+
+		assertThat(link.getVariables()).isEmpty();
+		assertThat(link.expand().getHref()).endsWith("/multipart-file");
+	}
+
 	@Test // #1548
 	void mapsRequestParamMap() {
 
@@ -757,6 +766,11 @@ class WebMvcLinkBuilderUnitTest extends TestUtils {
 
 		@RequestMapping(path = "/with-map") // #1548
 		HttpEntity<Void> methodWithMapRequestParam(@RequestParam Map<String, String> params) {
+			return null;
+		}
+
+		@RequestMapping("/multipart-file")
+		HttpEntity<Void> methodWithMultipartFile(@RequestParam("file") MultipartFile file) {
 			return null;
 		}
 	}
