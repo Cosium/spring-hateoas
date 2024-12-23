@@ -81,10 +81,10 @@ class HalFormsPropertyFactory {
 		HalFormsOptionsFactory optionsFactory = configuration.getOptionsFactory();
 		HalFormsValueFactory valuesFactory = configuration.getValuesFactory();
 
-		return model.createProperties((payload, metadata) -> {
+		return model.createProperties((payload, metadata, context) -> {
 
 			String inputType = metadata.getInputType();
-			HalFormsOptions options = optionsFactory.getOptions(payload, metadata);
+			HalFormsOptions options = optionsFactory.getOptions(payload, metadata, context);
 
 			HalFormsProperty property = new HalFormsProperty()
 					.withName(metadata.getName())
