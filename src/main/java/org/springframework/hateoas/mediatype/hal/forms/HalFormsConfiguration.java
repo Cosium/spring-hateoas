@@ -23,10 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.springframework.core.ResolvableType;
+import org.springframework.hateoas.AffordanceModel;
 import org.springframework.hateoas.AffordanceModel.PropertyMetadata;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.mediatype.hal.HalConfiguration;
@@ -166,7 +168,7 @@ public class HalFormsConfiguration {
 	 * @return
 	 */
 	public <T> HalFormsConfiguration withOptions(Class<T> type, String property,
-												 Function<PropertyMetadata, HalFormsOptions> creator) {
+												 BiFunction<PropertyMetadata, AffordanceModel.PropertyCreationContext, HalFormsOptions> creator) {
 
 		return new HalFormsConfiguration(halConfiguration, patterns, options.withOptions(type, property, creator), values,
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
