@@ -4,7 +4,7 @@
 
 	<groupId>org.springframework.hateoas</groupId>
 	<artifactId>spring-hateoas</artifactId>
-	<version>3.0.1</version>
+	<version>3.0.1.1.cosium-SNAPSHOT</version>
 
 	<name>Spring HATEOAS</name>
 	<url>https://github.com/spring-projects/spring-hateoas</url>
@@ -948,10 +948,8 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>3.1.1</version>
 				<configuration>
-					<releaseProfiles>sonatype</releaseProfiles>
 					<pushChanges>false</pushChanges>
 					<localCheckout>true</localCheckout>
-					<signTag>true</signTag>
 				</configuration>
 			</plugin>
 
