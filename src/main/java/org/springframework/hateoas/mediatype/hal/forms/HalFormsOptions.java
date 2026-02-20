@@ -333,6 +333,7 @@ public interface HalFormsOptions {
 		 * @return
 		 */
 		@JsonProperty
+		@JsonInclude(Include.ALWAYS)
 		public Collection<? extends Object> getInline() {
 			return inline;
 		}
