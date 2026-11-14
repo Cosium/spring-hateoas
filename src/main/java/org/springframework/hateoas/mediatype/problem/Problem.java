@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
@@ -230,8 +229,8 @@ public class Problem {
 		return status != null ? status.value() : null;
 	}
 
+	@JsonIgnore
 	@Nullable
-	@JsonProperty(access = Access.WRITE_ONLY)
 	public HttpStatus getStatus() {
 		return this.status;
 	}

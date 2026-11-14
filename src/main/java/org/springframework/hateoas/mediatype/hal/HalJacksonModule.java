@@ -66,8 +66,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
@@ -216,10 +218,7 @@ public class HalJacksonModule extends SimpleModule {
 		 * @return
 		 */
 		private HalLink toHalLink(Link link, HalLinkRelation rel) {
-
-			var title = resolver.resolve(rel);
-
-			return new HalLink(StringUtils.hasText(title) ? link.withTitle(title) : link);
+			return new HalLink(link, resolver.resolve(rel));
 		}
 
 		/*
@@ -863,14 +862,24 @@ public class HalJacksonModule extends SimpleModule {
 	static class HalLink {
 
 		private final Link link;
+		private final @Nullable String title;
 
-		public HalLink(Link link) {
+		public HalLink(Link link, @Nullable String title) {
+
 			this.link = link;
+			this.title = title;
 		}
 
 		@JsonUnwrapped
 		public Link getLink() {
 			return link;
+		}
+
+		@Nullable
+		@JsonInclude(Include.NON_EMPTY)
+		@JsonProperty
+		public String getTitle() {
+			return title;
 		}
 	}
 }
