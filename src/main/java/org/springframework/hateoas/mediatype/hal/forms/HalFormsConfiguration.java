@@ -174,10 +174,10 @@ public class HalFormsConfiguration {
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
 	}
 
-	public <T> HalFormsConfiguration withValues(Class<T> type, String property,
-			BiFunction<PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object> creator) {
+	public <T> HalFormsConfiguration withValues(Class<T> type,
+			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, Object>> creator) {
 
-		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, property, creator),
+		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, creator),
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
 	}
 

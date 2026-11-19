@@ -19,7 +19,9 @@ import static org.springframework.http.HttpMethod.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -28,6 +30,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.hateoas.AffordanceModel.InputPayloadMetadata;
+import org.springframework.hateoas.AffordanceModel.PropertyCreationContext;
 import org.springframework.hateoas.AffordanceModel.PropertyMetadata;
 import org.springframework.hateoas.mediatype.MessageResolver;
 import org.springframework.http.HttpMethod;
@@ -81,6 +84,8 @@ class HalFormsPropertyFactory {
 		HalFormsOptionsFactory optionsFactory = configuration.getOptionsFactory();
 		HalFormsValueFactory valuesFactory = configuration.getValuesFactory();
 
+		Map<PropertyCreationContext, Map<String, Object>> valuesByContext = new HashMap<>();
+
 		return model.createProperties((payload, metadata, context) -> {
 
 			String inputType = metadata.getInputType();
@@ -96,7 +101,7 @@ class HalFormsPropertyFactory {
 					.withMaxLength(metadata.getMaxLength())
 					.withRegex(lookupRegex(metadata)) //
 					.withType(inputType) //
-					.withValue(options != null ? options.getSelectedValue() : valuesFactory.getValue(payload, metadata, context)) //
+					.withValue(options != null ? options.getSelectedValue() : valuesByContext.computeIfAbsent(context, it -> valuesFactory.getValues(payload, it)).get(metadata.getName())) //
 					.withOptions(options);
 
 			Function<String, I18nedPropertyMetadata> factory = I18nedPropertyMetadata.factory(payload, property);

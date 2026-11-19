@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
@@ -206,7 +207,7 @@ class HalFormsTemplateBuilderUnitTest {
 		String value = "1234123412341234";
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, "number", (metadata, context) -> value);
+				.withValues(PatternExample.class, (payload, context) -> Map.of("number", value));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -224,7 +225,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersBooleanValue() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, "number", (metadata, context) -> true);
+				.withValues(PatternExample.class, (payload, context) -> Map.of("number", true));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -240,9 +241,38 @@ class HalFormsTemplateBuilderUnitTest {
 	}
 
 	@Test
+	void createsValuesOncePerTemplate() {
+		AtomicInteger creationCount = new AtomicInteger();
+
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, (payload, context) -> {
+					creationCount.incrementAndGet();
+					return Map.of("number", "1234", "overridden", "5678");
+				});
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		Map<String, HalFormsTemplate> templates = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models);
+
+		HalFormsTemplate template = templates.get("postPatternExample");
+		assertThat(template.getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("1234"));
+		assertThat(template.getPropertyByName("overridden")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("5678"));
+		assertThat(template.getPropertyByName("annotated")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isNull());
+		assertThat(creationCount).hasValue(1);
+	}
+
+	@Test
 	void rendersValueFromAffordanceLink() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, "number", (metadata, context) -> context.link().getHref());
+				.withValues(PatternExample.class, (payload, context) -> Map.of("number", context.link().getHref()));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/stores/42/examples", LinkRelation.of("create"))) //
