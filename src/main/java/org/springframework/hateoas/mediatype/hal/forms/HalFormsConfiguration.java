@@ -175,7 +175,7 @@ public class HalFormsConfiguration {
 	}
 
 	public <T> HalFormsConfiguration withValues(Class<T> type,
-			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, Object>> creator) {
+			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
 
 		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, creator),
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);

@@ -84,7 +84,7 @@ class HalFormsPropertyFactory {
 		HalFormsOptionsFactory optionsFactory = configuration.getOptionsFactory();
 		HalFormsValueFactory valuesFactory = configuration.getValuesFactory();
 
-		Map<PropertyCreationContext, Map<String, Object>> valuesByContext = new HashMap<>();
+		Map<PropertyCreationContext, Map<String, ? extends @Nullable Object>> valuesByContext = new HashMap<>();
 
 		return model.createProperties((payload, metadata, context) -> {
 

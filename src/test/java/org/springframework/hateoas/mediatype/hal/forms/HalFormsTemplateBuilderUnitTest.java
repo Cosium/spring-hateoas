@@ -27,6 +27,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -267,6 +269,27 @@ class HalFormsTemplateBuilderUnitTest {
 		assertThat(template.getPropertyByName("annotated")) //
 				.hasValueSatisfying(it -> assertThat(it.getValue()).isNull());
 		assertThat(creationCount).hasValue(1);
+	}
+
+	@Test
+	void rendersNoValueForNullValue() {
+		Map<String, @Nullable Object> values = new HashMap<>();
+		values.put("number", null);
+
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, (payload, context) -> values);
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		Map<String, HalFormsTemplate> templates = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models);
+
+		assertThat(templates.get("postPatternExample").getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isNull());
 	}
 
 	@Test
