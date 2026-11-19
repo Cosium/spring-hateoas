@@ -174,6 +174,24 @@ public class HalFormsConfiguration {
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
 	}
 
+	/**
+	 * Returns a new {@link HalFormsConfiguration} that fills the {@code value} of the HAL-FORMS template properties of
+	 * the given payload type. It replaces any value creator previously registered for that type.
+	 * <p>
+	 * The creator is invoked once per rendered template whose input is the given type, with:
+	 * <ol>
+	 * <li>the {@link AffordanceModel.InputPayloadMetadata} of that input, describing all its properties,</li>
+	 * <li>the {@link AffordanceModel.PropertyCreationContext} of the affordance, whose
+	 * {@link AffordanceModel.PropertyCreationContext#link() link} identifies the resource the template targets.</li>
+	 * </ol>
+	 * It returns the property values keyed by property name. A property absent from the map, or mapped to
+	 * {@literal null}, gets no value. A property whose options define a selected value gets that selected value instead.
+	 *
+	 * @param <T> the payload type
+	 * @param type must not be {@literal null}.
+	 * @param creator must not be {@literal null}.
+	 * @return will never be {@literal null}.
+	 */
 	public <T> HalFormsConfiguration withValues(Class<T> type,
 			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
 
