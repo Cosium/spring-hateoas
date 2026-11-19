@@ -84,7 +84,7 @@ class HalFormsPropertyFactory {
 		HalFormsOptionsFactory optionsFactory = configuration.getOptionsFactory();
 		HalFormsValueFactory valuesFactory = configuration.getValuesFactory();
 
-		Map<PropertyCreationContext, Map<String, ? extends @Nullable Object>> valuesByContext = new HashMap<>();
+		Map<PropertyCreationContext, HalFormsValues> valuesByContext = new HashMap<>();
 
 		return model.createProperties((payload, metadata, context) -> {
 
@@ -101,7 +101,7 @@ class HalFormsPropertyFactory {
 					.withMaxLength(metadata.getMaxLength())
 					.withRegex(lookupRegex(metadata)) //
 					.withType(inputType) //
-					.withValue(options != null ? options.getSelectedValue() : valuesByContext.computeIfAbsent(context, it -> valuesFactory.getValues(payload, it)).get(metadata.getName())) //
+					.withValue(options != null ? options.getSelectedValue() : valuesByContext.computeIfAbsent(context, it -> valuesFactory.getValues(payload, it)).getValue(metadata.getName())) //
 					.withOptions(options);
 
 			Function<String, I18nedPropertyMetadata> factory = I18nedPropertyMetadata.factory(payload, property);

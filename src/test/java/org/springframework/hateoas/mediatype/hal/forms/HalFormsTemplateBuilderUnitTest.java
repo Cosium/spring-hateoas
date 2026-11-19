@@ -27,7 +27,6 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +36,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.hateoas.AffordanceModel.PropertyMetadata;
 import org.springframework.hateoas.InputType;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
@@ -211,7 +210,7 @@ class HalFormsTemplateBuilderUnitTest {
 		String value = "1234123412341234";
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (properties, context) -> Map.of("number", value));
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", value));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -229,7 +228,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersBooleanValue() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (properties, context) -> Map.of("number", true));
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", true));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -252,8 +251,8 @@ class HalFormsTemplateBuilderUnitTest {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
 				.withValues(PatternExample.class, (properties, context) -> {
 					creationCount.incrementAndGet();
-					propertyNames.addAll(properties.keySet());
-					return Map.of("number", "1234", "overridden", "5678");
+					properties.stream().map(PropertyMetadata::getName).forEach(propertyNames::add);
+					return HalFormsValues.none().and("number", "1234").and("overridden", "5678");
 				});
 
 		RepresentationModel<?> models = new RepresentationModel<>(
@@ -278,11 +277,8 @@ class HalFormsTemplateBuilderUnitTest {
 
 	@Test
 	void rendersNoValueForNullValue() {
-		Map<String, @Nullable Object> values = new HashMap<>();
-		values.put("number", null);
-
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (properties, context) -> values);
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", null));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -300,7 +296,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersValueFromAffordanceLink() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (properties, context) -> Map.of("number", context.link().getHref()));
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", context.link().getHref()));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/stores/42/examples", LinkRelation.of("create"))) //

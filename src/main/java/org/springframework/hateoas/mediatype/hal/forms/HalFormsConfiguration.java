@@ -15,7 +15,6 @@
  */
 package org.springframework.hateoas.mediatype.hal.forms;
 
-import org.jspecify.annotations.Nullable;
 import tools.jackson.databind.json.JsonMapper.Builder;
 
 import java.util.ArrayList;
@@ -176,24 +175,17 @@ public class HalFormsConfiguration {
 
 	/**
 	 * Returns a new {@link HalFormsConfiguration} that fills the {@code value} of the HAL-FORMS template properties of
-	 * the given payload type. It replaces any value creator previously registered for that type.
+	 * the given payload type. It replaces any {@link HalFormsValuesCreator} previously registered for that type.
 	 * <p>
-	 * The creator is invoked once per rendered template whose input is the given type, with:
-	 * <ol>
-	 * <li>the {@link PropertyMetadata} of each property of that input, keyed by property name,</li>
-	 * <li>the {@link AffordanceModel.PropertyCreationContext} of the affordance, whose
-	 * {@link AffordanceModel.PropertyCreationContext#link() link} identifies the resource the template targets.</li>
-	 * </ol>
-	 * It returns the property values keyed by property name. A property absent from the map, or mapped to
-	 * {@literal null}, gets no value. A property whose options define a selected value gets that selected value instead.
+	 * The creator is invoked once per rendered template whose input is the given type. A property it gives no value
+	 * gets none. A property whose options define a selected value gets that selected value instead.
 	 *
 	 * @param <T> the payload type
 	 * @param type must not be {@literal null}.
 	 * @param creator must not be {@literal null}.
 	 * @return will never be {@literal null}.
 	 */
-	public <T> HalFormsConfiguration withValues(Class<T> type,
-			BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
+	public <T> HalFormsConfiguration withValues(Class<T> type, HalFormsValuesCreator creator) {
 
 		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, creator),
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
