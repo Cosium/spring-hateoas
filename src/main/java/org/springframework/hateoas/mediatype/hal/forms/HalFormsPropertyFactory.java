@@ -96,7 +96,7 @@ class HalFormsPropertyFactory {
 					.withMaxLength(metadata.getMaxLength())
 					.withRegex(lookupRegex(metadata)) //
 					.withType(inputType) //
-					.withValue(options != null ? options.getSelectedValue() : valuesFactory.getValue(payload, metadata)) //
+					.withValue(options != null ? options.getSelectedValue() : valuesFactory.getValue(payload, metadata, context)) //
 					.withOptions(options);
 
 			Function<String, I18nedPropertyMetadata> factory = I18nedPropertyMetadata.factory(payload, property);
