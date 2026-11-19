@@ -17,97 +17,77 @@ package org.springframework.hateoas.mediatype.hal.forms;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
 
-import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.AffordanceModel;
 import org.springframework.util.Assert;
 
 /**
  *
- * Factory implementation to register creator functions to eventually create value from
- * {@link AffordanceModel.PropertyMetadata} to decouple the registration (via {@link HalFormsConfiguration}) from the consumption during
- * rendering.
+ * Factory implementation to register {@link HalFormsValuesCreator}s to decouple the registration (via
+ * {@link HalFormsConfiguration}) from the consumption during rendering.
  *
  * @author Réda Housni Alaoui
  */
 class HalFormsValueFactory {
 
-	private final Map<Class<?>, Map<String, BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object>>> values;
+	private final Map<Class<?>, HalFormsValuesCreator> creators;
 
 	/**
 	 * Creates a new, empty {@link HalFormsValueFactory}.
 	 */
 	public HalFormsValueFactory() {
-		this.values = new HashMap<>();
+		this.creators = new HashMap<>();
 	}
 
 	/**
 	 * Copy-constructor to keep {@link HalFormsValueFactory} immutable during registrations.
 	 *
-	 * @param values must not be {@literal null}.
+	 * @param creators must not be {@literal null}.
 	 */
-	private HalFormsValueFactory(Map<Class<?>, Map<String, BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object>>> values) {
-		this.values = values;
+	private HalFormsValueFactory(Map<Class<?>, HalFormsValuesCreator> creators) {
+		this.creators = creators;
 	}
 
 	/**
-	 * Registers a {@link BiFunction} to create the value of the given property of the given type from its
-	 * {@link AffordanceModel.PropertyMetadata} and {@link AffordanceModel.PropertyCreationContext}.
+	 * Registers the {@link HalFormsValuesCreator} of the given type, replacing any creator previously registered for it.
 	 *
 	 * @param type must not be {@literal null}.
+	 * @param creator must not be {@literal null}.
 	 */
-	HalFormsValueFactory withValues(Class<?> type, String property,
-									   BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object> creator) {
+	HalFormsValueFactory withValues(Class<?> type, HalFormsValuesCreator creator) {
 
 		Assert.notNull(type, "Type must not be null!");
-		Assert.hasText(property, "Property must not be null or empty!");
-		Assert.notNull(creator, "Creator function must not be null!");
+		Assert.notNull(creator, "Creator must not be null!");
 
-		Map<Class<?>, Map<String, BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object>>> values = new HashMap<>(this.values);
+		Map<Class<?>, HalFormsValuesCreator> creators = new HashMap<>(this.creators);
+		creators.put(type, creator);
 
-		values.compute(type, (it, map) -> {
-
-			if (map == null) {
-				map = new HashMap<>();
-			}
-
-			map.put(property, creator);
-
-			return map;
-		});
-
-		return new HalFormsValueFactory(values);
+		return new HalFormsValueFactory(creators);
 	}
 
 	/**
-	 * Returns the value to be used for the property with the given {@link AffordanceModel.PayloadMetadata} and
-	 * {@link AffordanceModel.PropertyMetadata}.
+	 * Returns the values of the properties of the given {@link AffordanceModel.InputPayloadMetadata}.
 	 *
 	 * @param payload must not be {@literal null}.
-	 * @param property must not be {@literal null}.
 	 * @param context must not be {@literal null}.
+	 * @return will never be {@literal null}.
 	 */
-	@Nullable
-	Object getValue(AffordanceModel.PayloadMetadata payload, AffordanceModel.PropertyMetadata property,
+	HalFormsValues getValues(AffordanceModel.InputPayloadMetadata payload,
 			AffordanceModel.PropertyCreationContext context) {
 
 		Assert.notNull(payload, "Payload metadata must not be null!");
-		Assert.notNull(property, "Property metadata must not be null!");
 		Assert.notNull(context, "Property creation context must not be null!");
 
-		Class<?> type = payload.getType();
-		String name = property.getName();
+		HalFormsValuesCreator creator = creators.get(payload.getType());
 
-		Map<String, BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object>> map = values.get(type);
-
-		if (map == null) {
-			return null;
+		if (creator == null) {
+			return HalFormsValues.none();
 		}
 
-		BiFunction<AffordanceModel.PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object> function = map.get(name);
+		HalFormsValues values = creator.create(new HalFormsInputProperties(payload), context);
 
-		return function == null ? null : function.apply(property, context);
+		Assert.notNull(values, "HalFormsValues must not be null!");
+
+		return values;
 	}
-
 }
