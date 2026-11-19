@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.springframework.core.ResolvableType;
@@ -176,7 +175,7 @@ public class HalFormsConfiguration {
 	}
 
 	public <T> HalFormsConfiguration withValues(Class<T> type, String property,
-			Function<PropertyMetadata, @Nullable Object> creator) {
+			BiFunction<PropertyMetadata, AffordanceModel.PropertyCreationContext, @Nullable Object> creator) {
 
 		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, property, creator),
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);

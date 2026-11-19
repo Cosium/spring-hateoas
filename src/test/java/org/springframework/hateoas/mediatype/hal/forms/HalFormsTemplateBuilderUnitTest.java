@@ -206,7 +206,7 @@ class HalFormsTemplateBuilderUnitTest {
 		String value = "1234123412341234";
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, "number", metadata -> value);
+				.withValues(PatternExample.class, "number", (metadata, context) -> value);
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -224,7 +224,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersBooleanValue() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, "number", metadata -> true);
+				.withValues(PatternExample.class, "number", (metadata, context) -> true);
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -237,6 +237,24 @@ class HalFormsTemplateBuilderUnitTest {
 
 		assertThat(templates.get("postPatternExample").getPropertyByName("number")) //
 				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo(true));
+	}
+
+	@Test
+	void rendersValueFromAffordanceLink() {
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, "number", (metadata, context) -> context.link().getHref());
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/stores/42/examples", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		Map<String, HalFormsTemplate> templates = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models);
+
+		assertThat(templates.get("postPatternExample").getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("/stores/42/examples"));
 	}
 
 	@Test // #1510
