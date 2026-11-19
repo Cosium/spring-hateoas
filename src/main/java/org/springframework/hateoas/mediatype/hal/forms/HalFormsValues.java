@@ -72,4 +72,9 @@ public final class HalFormsValues {
 	Object getValue(String property) {
 		return valueByProperty.get(property);
 	}
+
+	@Override
+	public String toString() {
+		return "HalFormsValues" + valueByProperty;
+	}
 }

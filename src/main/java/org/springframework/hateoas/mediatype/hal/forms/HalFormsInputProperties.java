@@ -15,10 +15,10 @@
  */
 package org.springframework.hateoas.mediatype.hal.forms;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.hateoas.AffordanceModel.InputPayloadMetadata;
@@ -31,16 +31,18 @@ import org.springframework.util.Assert;
  * @author Réda Housni Alaoui
  * @see HalFormsValuesCreator
  */
-public final class HalFormsProperties {
+public final class HalFormsInputProperties {
 
 	private final Map<String, PropertyMetadata> propertyByName;
 
-	HalFormsProperties(InputPayloadMetadata payload) {
+	HalFormsInputProperties(InputPayloadMetadata payload) {
 
 		Assert.notNull(payload, "Payload metadata must not be null!");
 
-		this.propertyByName = payload.stream() //
-				.collect(Collectors.toUnmodifiableMap(PropertyMetadata::getName, Function.identity()));
+		Map<String, PropertyMetadata> propertyByName = new LinkedHashMap<>();
+		payload.stream().forEach(it -> propertyByName.put(it.getName(), it));
+
+		this.propertyByName = Collections.unmodifiableMap(propertyByName);
 	}
 
 	/**
@@ -55,7 +57,7 @@ public final class HalFormsProperties {
 	}
 
 	/**
-	 * @return the metadata of every property of the input.
+	 * @return the metadata of every property of the input, in the order of the input.
 	 */
 	public Stream<PropertyMetadata> stream() {
 		return propertyByName.values().stream();

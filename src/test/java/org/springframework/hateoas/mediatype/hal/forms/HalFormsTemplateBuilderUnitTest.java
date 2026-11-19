@@ -26,6 +26,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -291,6 +292,126 @@ class HalFormsTemplateBuilderUnitTest {
 
 		assertThat(templates.get("postPatternExample").getPropertyByName("number")) //
 				.hasValueSatisfying(it -> assertThat(it.getValue()).isNull());
+	}
+
+	@Test
+	void takesValueOfPropertyWithOptionsFromItsSelectedValue() {
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withOptions(PatternExample.class, "number",
+						(metadata, context) -> HalFormsOptions.inline("1234", "4321").withSelectedValue("1234"))
+				.withValues(PatternExample.class,
+						(properties, context) -> HalFormsValues.none().and("number", "5678").and("overridden", "8765"));
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		HalFormsTemplate template = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models).get("postPatternExample");
+
+		assertThat(template.getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("1234"));
+		assertThat(template.getPropertyByName("overridden")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("8765"));
+	}
+
+	@Test
+	void createsNoValuesWhenEveryPropertyHasOptions() {
+		AtomicInteger creationCount = new AtomicInteger();
+
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withOptions(PatternExample.class, "number", (metadata, context) -> HalFormsOptions.inline("1234"))
+				.withOptions(PatternExample.class, "overridden", (metadata, context) -> HalFormsOptions.inline("5678"))
+				.withOptions(PatternExample.class, "annotated", (metadata, context) -> HalFormsOptions.inline("8765"))
+				.withValues(PatternExample.class, (properties, context) -> {
+					creationCount.incrementAndGet();
+					return HalFormsValues.none();
+				});
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY).findTemplates(models);
+
+		assertThat(creationCount).hasValue(0);
+	}
+
+	@Test
+	void createsValuesOncePerAffordanceWithItsOwnLink() {
+		List<String> hrefs = new ArrayList<>();
+
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, (properties, context) -> {
+					hrefs.add(context.link().getHref());
+					return HalFormsValues.none().and("number", context.link().getHref());
+				});
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.withName("first") //
+						.withTarget(Link.of("/first")) //
+						.andAfford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.withName("second") //
+						.withTarget(Link.of("/second")) //
+						.toLink());
+
+		Map<String, HalFormsTemplate> templates = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models);
+
+		assertThat(hrefs).containsExactlyInAnyOrder("/first", "/second");
+		assertThat(templates.get("first").getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("/first"));
+		assertThat(templates.get("second").getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("/second"));
+	}
+
+	@Test
+	void exposesInputPropertiesByName() {
+		List<Optional<String>> propertyNames = new ArrayList<>();
+
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, (properties, context) -> {
+					propertyNames.add(properties.getProperty("number").map(PropertyMetadata::getName));
+					propertyNames.add(properties.getProperty("missing").map(PropertyMetadata::getName));
+					return HalFormsValues.none();
+				});
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY).findTemplates(models);
+
+		assertThat(propertyNames).containsExactly(Optional.of("number"), Optional.empty());
+	}
+
+	@Test
+	void replacesValuesCreatorOfSameType() {
+		HalFormsConfiguration configuration = new HalFormsConfiguration() //
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", "1234"))
+				.withValues(PatternExample.class, (properties, context) -> HalFormsValues.none().and("number", "5678"));
+
+		RepresentationModel<?> models = new RepresentationModel<>(
+				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
+						.afford(HttpMethod.POST) //
+						.withInput(PatternExample.class) //
+						.toLink());
+
+		Map<String, HalFormsTemplate> templates = new HalFormsTemplateBuilder(configuration, MessageResolver.DEFAULTS_ONLY)
+				.findTemplates(models);
+
+		assertThat(templates.get("postPatternExample").getPropertyByName("number")) //
+				.hasValueSatisfying(it -> assertThat(it.getValue()).isEqualTo("5678"));
 	}
 
 	@Test

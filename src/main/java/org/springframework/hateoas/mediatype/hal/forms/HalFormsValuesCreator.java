@@ -32,5 +32,5 @@ public interface HalFormsValuesCreator {
 	 *          resource the template targets.
 	 * @return the values of the template properties, never {@literal null}.
 	 */
-	HalFormsValues create(HalFormsProperties properties, PropertyCreationContext context);
+	HalFormsValues create(HalFormsInputProperties properties, PropertyCreationContext context);
 }

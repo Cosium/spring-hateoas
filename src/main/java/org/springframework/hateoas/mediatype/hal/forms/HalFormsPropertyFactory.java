@@ -90,6 +90,10 @@ class HalFormsPropertyFactory {
 
 			String inputType = metadata.getInputType();
 			HalFormsOptions options = optionsFactory.getOptions(payload, metadata, context);
+			@Nullable Object value = options != null //
+					? options.getSelectedValue() //
+					: valuesByContext.computeIfAbsent(context, it -> valuesFactory.getValues(payload, it))
+							.getValue(metadata.getName());
 
 			HalFormsProperty property = new HalFormsProperty()
 					.withName(metadata.getName())
@@ -101,7 +105,7 @@ class HalFormsPropertyFactory {
 					.withMaxLength(metadata.getMaxLength())
 					.withRegex(lookupRegex(metadata)) //
 					.withType(inputType) //
-					.withValue(options != null ? options.getSelectedValue() : valuesByContext.computeIfAbsent(context, it -> valuesFactory.getValues(payload, it)).getValue(metadata.getName())) //
+					.withValue(value) //
 					.withOptions(options);
 
 			Function<String, I18nedPropertyMetadata> factory = I18nedPropertyMetadata.factory(payload, property);

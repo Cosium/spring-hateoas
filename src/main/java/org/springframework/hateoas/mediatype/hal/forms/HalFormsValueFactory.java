@@ -84,6 +84,10 @@ class HalFormsValueFactory {
 			return HalFormsValues.none();
 		}
 
-		return creator.create(new HalFormsProperties(payload), context);
+		HalFormsValues values = creator.create(new HalFormsInputProperties(payload), context);
+
+		Assert.notNull(values, "HalFormsValues must not be null!");
+
+		return values;
 	}
 }
