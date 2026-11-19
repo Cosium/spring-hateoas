@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.hateoas.AffordanceModel;
@@ -34,7 +36,7 @@ import org.springframework.util.Assert;
  */
 class HalFormsValueFactory {
 
-	private final Map<Class<?>, BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values;
+	private final Map<Class<?>, BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values;
 
 	/**
 	 * Creates a new, empty {@link HalFormsValueFactory}.
@@ -49,25 +51,26 @@ class HalFormsValueFactory {
 	 * @param values must not be {@literal null}.
 	 */
 	private HalFormsValueFactory(
-			Map<Class<?>, BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values) {
+			Map<Class<?>, BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values) {
 		this.values = values;
 	}
 
 	/**
 	 * Registers a {@link BiFunction} to create the values of the properties of the given type, keyed by property name,
-	 * from its {@link AffordanceModel.InputPayloadMetadata} and {@link AffordanceModel.PropertyCreationContext}. It
+	 * from the {@link AffordanceModel.PropertyMetadata} of those properties, keyed by property name, and the
+	 * {@link AffordanceModel.PropertyCreationContext}. It
 	 * replaces any creator previously registered for the type.
 	 *
 	 * @param type must not be {@literal null}.
 	 * @param creator must not be {@literal null}.
 	 */
 	HalFormsValueFactory withValues(Class<?> type,
-			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
+			BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
 
 		Assert.notNull(type, "Type must not be null!");
 		Assert.notNull(creator, "Creator function must not be null!");
 
-		Map<Class<?>, BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values = new HashMap<>(
+		Map<Class<?>, BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>>> values = new HashMap<>(
 				this.values);
 		values.put(type, creator);
 
@@ -88,9 +91,16 @@ class HalFormsValueFactory {
 		Assert.notNull(payload, "Payload metadata must not be null!");
 		Assert.notNull(context, "Property creation context must not be null!");
 
-		BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> function = values
+		BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> function = values
 				.get(payload.getType());
 
-		return function == null ? Collections.emptyMap() : function.apply(payload, context);
+		if (function == null) {
+			return Collections.emptyMap();
+		}
+
+		Map<String, AffordanceModel.PropertyMetadata> properties = payload.stream() //
+				.collect(Collectors.toUnmodifiableMap(AffordanceModel.PropertyMetadata::getName, Function.identity()));
+
+		return function.apply(properties, context);
 	}
 }

@@ -28,9 +28,11 @@ import lombok.Getter;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.validator.constraints.Length;
@@ -209,7 +211,7 @@ class HalFormsTemplateBuilderUnitTest {
 		String value = "1234123412341234";
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (payload, context) -> Map.of("number", value));
+				.withValues(PatternExample.class, (properties, context) -> Map.of("number", value));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -227,7 +229,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersBooleanValue() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (payload, context) -> Map.of("number", true));
+				.withValues(PatternExample.class, (properties, context) -> Map.of("number", true));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -245,10 +247,12 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void createsValuesOncePerTemplate() {
 		AtomicInteger creationCount = new AtomicInteger();
+		Set<String> propertyNames = new HashSet<>();
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (payload, context) -> {
+				.withValues(PatternExample.class, (properties, context) -> {
 					creationCount.incrementAndGet();
+					propertyNames.addAll(properties.keySet());
 					return Map.of("number", "1234", "overridden", "5678");
 				});
 
@@ -269,6 +273,7 @@ class HalFormsTemplateBuilderUnitTest {
 		assertThat(template.getPropertyByName("annotated")) //
 				.hasValueSatisfying(it -> assertThat(it.getValue()).isNull());
 		assertThat(creationCount).hasValue(1);
+		assertThat(propertyNames).containsExactlyInAnyOrder("number", "overridden", "annotated");
 	}
 
 	@Test
@@ -277,7 +282,7 @@ class HalFormsTemplateBuilderUnitTest {
 		values.put("number", null);
 
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (payload, context) -> values);
+				.withValues(PatternExample.class, (properties, context) -> values);
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/example", LinkRelation.of("create"))) //
@@ -295,7 +300,7 @@ class HalFormsTemplateBuilderUnitTest {
 	@Test
 	void rendersValueFromAffordanceLink() {
 		HalFormsConfiguration configuration = new HalFormsConfiguration() //
-				.withValues(PatternExample.class, (payload, context) -> Map.of("number", context.link().getHref()));
+				.withValues(PatternExample.class, (properties, context) -> Map.of("number", context.link().getHref()));
 
 		RepresentationModel<?> models = new RepresentationModel<>(
 				Affordances.of(Link.of("/stores/42/examples", LinkRelation.of("create"))) //

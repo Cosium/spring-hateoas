@@ -180,7 +180,7 @@ public class HalFormsConfiguration {
 	 * <p>
 	 * The creator is invoked once per rendered template whose input is the given type, with:
 	 * <ol>
-	 * <li>the {@link AffordanceModel.InputPayloadMetadata} of that input, describing all its properties,</li>
+	 * <li>the {@link PropertyMetadata} of each property of that input, keyed by property name,</li>
 	 * <li>the {@link AffordanceModel.PropertyCreationContext} of the affordance, whose
 	 * {@link AffordanceModel.PropertyCreationContext#link() link} identifies the resource the template targets.</li>
 	 * </ol>
@@ -193,7 +193,7 @@ public class HalFormsConfiguration {
 	 * @return will never be {@literal null}.
 	 */
 	public <T> HalFormsConfiguration withValues(Class<T> type,
-			BiFunction<AffordanceModel.InputPayloadMetadata, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
+			BiFunction<Map<String, AffordanceModel.PropertyMetadata>, AffordanceModel.PropertyCreationContext, Map<String, ? extends @Nullable Object>> creator) {
 
 		return new HalFormsConfiguration(halConfiguration, patterns, options, values.withValues(type, creator),
 				mapperCustomizer, mediaTypes, defaultSingleTemplate);
